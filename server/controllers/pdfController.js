@@ -18,7 +18,7 @@ exports.createPdf = async (req, res) => {
     .create(pdfTemplate(req.body), { timeout: 300000 })
     .toBuffer(async (err, buffer) => {
       if (err) {
-        console.log(err);
+        console.error('PDF Generation Error:', err);
         return res.status(500).send("Error generating PDF");
       } else {
         try {
@@ -39,7 +39,10 @@ exports.createPdf = async (req, res) => {
             readableStream
               .pipe(stream)
               .on("finish", () => resolve())
-              .on("error", (error) => reject(error));
+              .on("error", (error) => {
+                console.error('Upload Error:', error);
+                reject(error);
+              });
           });
 
           const [fileUrl] = await file.getSignedUrl({
@@ -59,7 +62,7 @@ exports.createPdf = async (req, res) => {
           // Respond to the client
           res.send("PDF generated and uploaded to Firebase successfully");
         } catch (uploadErr) {
-          console.log(uploadErr);
+          console.error('Upload Error:', uploadErr);
           res.status(500).send("Error uploading PDF to Firebase");
         }
       }
